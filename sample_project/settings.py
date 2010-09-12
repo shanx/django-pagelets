@@ -94,3 +94,9 @@ INSTALLED_APPS = (
     'django.contrib.sitemaps',
     'pagelets',
 )
+
+PAGELET_MEDIA = {
+    'js': ['pagelets/wymeditor/jquery.wymeditor.js',
+           'pagelets/js/pagelets.wymeditor.js',],
+    'css': {'all': ['pagelets/css/wymeditor.admin.css']}
+}

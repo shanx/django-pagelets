@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.utils.html import strip_tags
 from django.utils.text import truncate_html_words
+from django import forms
 
 from pagelets import models as pagelets
 if 'treenav' in settings.INSTALLED_APPS:
@@ -113,14 +114,16 @@ class PageletAdmin(admin.ModelAdmin):
     )
     search_fields = ('slug', 'content',)
     list_filter = ('type', 'modified_by', 'last_changed', 'creation_date')
-    
-    class Media:
-        css = {
-            'all': ('pagelets/css/wymeditor.admin.css',)
-        }
-        js = ('pagelets/wymeditor/jquery.wymeditor.js',
-              'pagelets/js/pagelets.js')
-    
+
+    def _media(self):
+        m = super(PageletAdmin, self)._media()
+        m += forms.Media(js=['pagelets/js/pagelets.js'])
+        extra = getattr(settings, 'PAGELET_MEDIA', {})
+        if extra:
+            m += forms.Media(css=extra.get('css', []), js=extra.get('js', []))
+        return m
+    media = property(_media)
+
     def content_preview(self, obj):
         return strip_tags(truncate_html_words(obj.content, 5))
     content_preview.short_description = 'content preview'
