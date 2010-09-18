@@ -1,5 +1,5 @@
 jQuery(function() {
-    $('body').bind('pagelets-change', function(e, name, content_field) {
+    $(document).bind('pagelets-change', function(e, name, content_field) {
         if (name == 'wymeditor') {
             content_field.wymeditor({
                 updateSelector: "input:submit",
