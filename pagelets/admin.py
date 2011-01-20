@@ -80,7 +80,7 @@ class PageAdmin(admin.ModelAdmin):
 
     def _media(self):
         m = super(PageAdmin, self)._media()
-        m += forms.Media(js=['pagelets/js/pagelets.js'])
+        m += forms.Media(js=['js/pagelets.js'])
         extra = getattr(settings, 'PAGELET_MEDIA', {})
         if extra:
             m += forms.Media(css=extra.get('css', []), js=extra.get('js', []))
@@ -119,7 +119,7 @@ class PageletAdmin(admin.ModelAdmin):
 
     def _media(self):
         m = super(PageletAdmin, self)._media()
-        m += forms.Media(js=['pagelets/js/pagelets.js'])
+        m += forms.Media(js=['js/pagelets.js'])
         extra = getattr(settings, 'PAGELET_MEDIA', {})
         if extra:
             m += forms.Media(css=extra.get('css', []), js=extra.get('js', []))

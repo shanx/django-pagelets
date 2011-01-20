@@ -1,0 +1,27 @@
+/* WYMeditor */
+
+/* Image Left */
+img.left /* img[class!="right"] */{
+    display: inline-block;
+    float: left;
+    /* float: left */
+}
+
+/* Image Right */
+img.right /* img[class!="left"] */{
+    display: inline-block;
+    float: right;
+    /* float: right */
+}
+
+/* Image Right */
+img.center /* img[class!="left"] */{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    /* float: right */
+}
+
+
+/* /WYMeditor */
+
