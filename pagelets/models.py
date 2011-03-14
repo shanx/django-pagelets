@@ -1,3 +1,4 @@
+from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import strip_tags
@@ -11,8 +12,20 @@ from datetime import datetime
 
 from pagelets import validators
 
-if 'tagging' in settings.INSTALLED_APPS:
-    from tagging.fields import TagField
+USE_TAGGING = getattr(settings, 'PAGELET_USE_TAGGING', False)
+USE_TAGGIT = getattr(settings, 'PAGELET_USE_TAGGIT', False)
+if USE_TAGGING and USE_TAGGIT:
+    raise ImproperlyConfigured('You cannot set both PAGELET_USE_TAGGING and PAGELET_USE_TAGGIT as True.')
+if USE_TAGGING:
+    if 'tagging' in settings.INSTALLED_APPS:
+        from tagging.fields import TagField
+    else:
+        raise ImproperlyConfigured('PAGELET_USE_TAGGING is True but django-tagging is not installed.')
+elif USE_TAGGIT:
+    if 'taggit' in settings.INSTALLED_APPS:
+        from taggit.managers import TaggableManager as TagField
+    else:
+        raise ImproperlyConfigured('PAGELET_USE_TAGGIT is True but django-taggit is not installed.')
 else:
     TagField = None
 

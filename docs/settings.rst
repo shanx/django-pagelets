@@ -73,3 +73,31 @@ This defines the default content type used when creating new pagelets. It can be
 a build-in content type or a user defined content type as described above.
 
 
+PAGELET_USE_TAGGING
+-----------------------
+
+Default: `False`
+
+There is optional support for including tags on pages with `django-tagging <http://code.google.com/p/django-tagging>`_.
+You must have django-tagging installed.
+
+
+PAGELET_USE_TAGGIT
+-----------------------
+
+Default: `False`
+
+As an alternative to django-tagging there is support for including tags on pages with 
+`django-taggit <https://github.com/alex/django-taggit>`_. You must have django-taggit installed.
+It is not possible to use both `django-tagging` and `django-taggit` at the same time.
+
+
+PAGELET_USE_TREENAV
+-----------------------
+
+Default: `False`
+
+`django-treenav <https://github.com/caktus/django-treenav>`_ is another Django application maintained by Caktus. It is used to maintain
+site navigation through the admin. You can tie you site navigation to pages created in Django
+pagelets. You must have djange-treenav installed to use this setting.
+

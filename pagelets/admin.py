@@ -1,11 +1,16 @@
 from django.contrib import admin
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.html import strip_tags
 from django.utils.text import truncate_html_words
 
 from pagelets import models as pagelets
-if 'treenav' in settings.INSTALLED_APPS:
-    from treenav.admin import GenericMenuItemInline
+
+if getattr(settings, 'PAGELET_USE_TREENAV', False):
+    if 'treenav' in settings.INSTALLED_APPS:
+        from treenav.admin import GenericMenuItemInline
+    else:
+        raise ImproperlyConfigured('PAGELET_USE_TREENAV is True but django-treenav is not installed.')
 else:
     GenericMenuItemInline = None
 
@@ -60,7 +65,9 @@ class PageAdmin(admin.ModelAdmin):
     inlines = [InlinePageletAdmin, SharedPageletAdmin,
                InlinePageAttachmentAdmin]
     shown_fields = ['title', 'slug']
-    if 'tagging' in settings.INSTALLED_APPS:
+    USE_TAGGING = getattr(settings, 'PAGELET_USE_TAGGING', False)
+    USE_TAGGIT = getattr(settings, 'PAGELET_USE_TAGGIT', False)
+    if USE_TAGGING or USE_TAGGIT:
         shown_fields.append('tags')
     optional_fields = ['description', ('meta_keywords', 'meta_robots')]
     if getattr(settings, 'PAGELET_BASE_TEMPLATES', None):
