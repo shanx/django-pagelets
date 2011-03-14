@@ -12,6 +12,7 @@ Contents:
 
     sample
     configuration
+    settings
 
 Indices and tables
 ==================
