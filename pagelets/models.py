@@ -18,20 +18,9 @@ else:
 
 ORDER_CHOICES = [(x, x) for x in range(-10, 11)]
 
-try:
-    settings.PAGELET_CONTENT_DEFAULT
-except AttributeError:
-    settings.PAGELET_CONTENT_DEFAULT = 'html'    
-
-# settings.PAGELET_TEMPLATE_TAGS is a list of template tag names that
-# will load before each pagelet is rendered, allowing custom template
-# tags to be included without including {% load <template_tag> %}
-tags = set(['pagelet_tags'])
-if hasattr(settings, 'PAGELET_TEMPLATE_TAGS'):
-    for tag in settings.PAGELET_TEMPLATE_TAGS:
-        tags.add(tag)
-AUTO_LOAD_TEMPLATE_TAGS = '{%% load %s %%}' % ' '.join(tags)
-
+BUILTIN_TEMPLATE_TAGS = ['pagelet_tags']
+TEMPLATE_TAGS = set(BUILTIN_TEMPLATE_TAGS + getattr(settings, 'PAGELET_TEMPLATE_TAGS', []))
+AUTO_LOAD_TEMPLATE_TAGS = '{%% load %s %%}' % ' '.join(TEMPLATE_TAGS)
 
 CONTENT_AREAS = getattr(settings, 'PAGELET_CONTENT_AREAS', (('main', 'Main'),))
 DEFAULT_CONTENT_AREA = CONTENT_AREAS[0][0]
@@ -74,6 +63,10 @@ class PageletBase(models.Model):
 
 
 class Page(PageletBase):
+    BUILTIN_TEMPATES = [('pagelets/view_page.html', 'Pagelets Default')]
+    BASE_TEMPLATES = BUILTIN_TEMPATES + getattr(settings, 'PAGELET_BASE_TEMPLATES', [])
+    TEMPLATE_DEFAULT = BUILTIN_TEMPATES[0][0]
+
     title = models.CharField(
         _('title'), 
         max_length=255,
@@ -109,8 +102,8 @@ class Page(PageletBase):
         blank=True,
         help_text=_('Specify an alternative layout template to use for this '
                   'page.  Clear the selection to use the default layout.'),
-        choices=getattr(settings, 'PAGELET_BASE_TEMPLATES', []),
-        default='pagelets/view_page.html',
+        choices=BASE_TEMPLATES,
+        default=TEMPLATE_DEFAULT,
     )
     meta_keywords = models.CharField(
         _('meta keywords'),
@@ -154,18 +147,48 @@ class Page(PageletBase):
         return self.title
 
 
+def compile_textile(content):
+    from textile import textile
+    return textile(content)
+
+
+def compile_markdown(content):
+    from markdown import markdown
+    return markdown(compiled)
+
+
 class Pagelet(PageletBase):
     """
     Primary model for storing pieces of static content in the database.
     """
+
+    CONTENT_HTML = 'html'
+    CONTENT_MARKDOWN = 'markdown'
+    CONTENT_TEXTILE = 'textile'
+
+    BUILTIN_CONTENT_TYPES = {
+        CONTENT_HTML: {
+            'label': 'HTML',
+            'render': ''
+        },
+        CONTENT_MARKDOWN: {
+            'label': 'Markdown',
+            'render': compile_markdown,
+        },
+        CONTENT_TEXTILE: {
+            'label': 'Textile',
+            'render': compile_textile,
+        }
+    }
+
+    CONTENT_DEFAULT = getattr(settings, 'PAGELET_CONTENT_DEFAULT', CONTENT_HTML)
     
-    CONTENT_TYPES = (
-        ('html', 'HTML'),
-    #    ('mediawiki', 'MediaWiki'),
-        ('markdown', 'Markdown'),
-    #    ('tinymce', 'TinyMCE'),
-        ('wymeditor', 'WYMeditor'),
-        ('textile', 'Textile'),
+    CONTENT_TYPES = BUILTIN_CONTENT_TYPES
+    CONTENT_TYPES.update(getattr(settings, 'PAGELET_CONTENT_TYPES', {}))
+
+    CONTENT_TYPE_CHOICES = map(
+        lambda (key, value): (key, value.get('label', key)),
+        CONTENT_TYPES.items()
     )
     
     # whenever you need to reference a pagelet in CSS, use its slug
@@ -190,8 +213,8 @@ class Pagelet(PageletBase):
     type = models.CharField(
         _('content type'), 
         max_length=32, 
-        choices=CONTENT_TYPES, 
-        default=settings.PAGELET_CONTENT_DEFAULT,
+        choices=CONTENT_TYPE_CHOICES, 
+        default=CONTENT_DEFAULT,
         help_text=_('Controls the markup language and, in some cases, the '
                   'JavaScript editor to be used for this pagelet\'s content.'),
     )
@@ -220,19 +243,14 @@ class Pagelet(PageletBase):
         origin = StringOrigin('pagelet: %s' % self.slug)
         compiled = compile_string(loaded_cms, origin).render(context)
         try:
-            if self.type in ('html', 'tinymce', 'wymeditor'):
+            render = self.CONTENT_TYPES.get(self.type, {}).get('render')
+            if render:
+                html = render(compiled)
+            else:
                 html = compiled
-            elif self.type == "textile":
-                from textile import textile
-                html = textile(str(compiled))
-            elif self.type == "markdown":
-                from markdown import markdown
-                html = markdown(compiled)
             return html
         except TemplateSyntaxError, e:
             return 'Syntax error, %s' % e
-        
-        raise Exception("Unsupported template content type '%s'" % content.content_type)
     
     def save(self, *args, **kwargs):
         # force empty slugs to None so we don't get a DuplicateKey
