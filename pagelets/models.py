@@ -14,6 +14,8 @@ from pagelets import validators
 
 USE_TAGGING = getattr(settings, 'PAGELET_USE_TAGGING', False)
 USE_TAGGIT = getattr(settings, 'PAGELET_USE_TAGGIT', False)
+PAGE_ATTACHMENT_PATH = getattr(settings, 'PAGE_ATTACHMENT_PATH', 'attachments/pages/')
+
 if USE_TAGGING and USE_TAGGIT:
     raise ImproperlyConfigured('You cannot set both PAGELET_USE_TAGGING and PAGELET_USE_TAGGIT as True.')
 if USE_TAGGING:
@@ -381,7 +383,7 @@ class SharedPagelet(PlacedPageletBase):
 class PageAttachment(models.Model):
     page = models.ForeignKey(Page, related_name='attachments')
     name = models.CharField(max_length=255)
-    file = models.FileField(upload_to='attachments/pages/')
+    file = models.FileField(upload_to=PAGE_ATTACHMENT_PATH)
     order = models.SmallIntegerField(
         null=True, 
         blank=True, 
