@@ -17,7 +17,7 @@
 	<div class='pagelet-preview'>
 		{% render_pagelet pagelet_preview %}
 	</div>
-    <form id='pagelet-preview-form' class='modify-pagelet' accept-charset='UTF-8' method='post' action=''>
+    <form id='pagelet-preview-form' class='modify-pagelet' accept-charset='UTF-8' method='post' action='.'>
     {% csrf_token %}
     {{ preview_form }}
     <div class='pagelet-submit'>
@@ -28,7 +28,7 @@
 
 <h3>Edit {% if pagelet.slug %}{{ pagelet.slug }}{% else %}pagelet #{{ pagelet.real.pk }}{% endif %}</h3>
 
-<form id='pagelet-form' class='modify-pagelet' accept-charset='UTF-8' method='post' action=''>
+<form id='pagelet-form' class='modify-pagelet' accept-charset='UTF-8' method='post' action='.'>
 	<ul>
         {% csrf_token %}
         {{ form.as_ul }}
